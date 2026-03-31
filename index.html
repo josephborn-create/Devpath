@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joe's Portfolio</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 64px 24px;
+        background-color: #fafafa;
+        color: #374151;
+        line-height: 1.7;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* Dark mode styles */
+      body.dark {
+        background-color: #1a1a2e;
+        color: #d1d5db;
+      }
+
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+      }
+
+      body.dark h1 {
+        color: #f3f4f6;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-top: 40px;
+        margin-bottom: 12px;
+      }
+
+      body.dark h2 {
+        color: #e5e7eb;
+      }
+
+      p {
+        font-size: 1.05rem;
+        margin-bottom: 8px;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      li {
+        padding: 14px 20px;
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        color: #374151;
+        transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+      }
+
+      body.dark li {
+        background-color: #16213e;
+        border-color: #2a2a4a;
+        color: #d1d5db;
+      }
+
+      /* Toggle button */
+      .theme-toggle {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        border: 1px solid #e5e7eb;
+        background-color: white;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s, border-color 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      body.dark .theme-toggle {
+        background-color: #16213e;
+        border-color: #2a2a4a;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <span id="themeIcon">&#9790;</span>
+    </button>
+
+    <h1>My Portfolio</h1>
+    <p>
+      Hi, I'm Joe! I'm learning to build web apps and getting the hang of
+      using Claude Code to speed up my workflow. I'm excited about turning
+      ideas into real, working projects.
+    </p>
+    <h2>My Hobbies</h2>
+    <ul>
+      <li>Building side projects and tinkering with new tools</li>
+      <li>Exploring the outdoors</li>
+      <li>Reading about technology and design</li>
+    </ul>
+
+    <script>
+      const body = document.body;
+      const toggle = document.getElementById("themeToggle");
+      const icon = document.getElementById("themeIcon");
+
+      function updateIcon() {
+        icon.innerHTML = body.classList.contains("dark") ? "&#9788;" : "&#9790;";
+      }
+
+      toggle.addEventListener("click", () => {
+        body.classList.toggle("dark");
+        updateIcon();
+      });
+    </script>
+  </body>
+</html>

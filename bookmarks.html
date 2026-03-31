@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Bookmarks</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #fafafa;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #9ca3af;
+      margin-bottom: 32px;
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    input {
+      padding: 10px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: white;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    #nameInput { flex: 1; }
+    #urlInput { flex: 1.5; }
+
+    #searchInput {
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .add-btn {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .add-btn:hover { background: #1d4ed8; }
+
+    .count {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 12px;
+    }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+
+    li:hover {
+      border-color: #93c5fd;
+    }
+
+    .bookmark-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .bookmark-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #111827;
+    }
+
+    .bookmark-url {
+      font-size: 0.8rem;
+      color: #2563eb;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 400px;
+      display: block;
+    }
+
+    .bookmark-url:hover { text-decoration: underline; }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #d1d5db;
+      cursor: pointer;
+      font-size: 1.3rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: #9ca3af;
+    }
+
+    .empty-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+
+    .empty-text {
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 500px) {
+      form {
+        flex-direction: column;
+      }
+      .bookmark-url {
+        max-width: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>My Bookmarks</h1>
+    <p class="subtitle">Save and organize your favorite links</p>
+
+    <form id="bookmarkForm">
+      <input type="text" id="nameInput" placeholder="Bookmark name" required />
+      <input type="url" id="urlInput" placeholder="https://example.com" required />
+      <button type="submit" class="add-btn">Add</button>
+    </form>
+
+    <input type="text" id="searchInput" placeholder="Search bookmarks..." />
+
+    <p class="count" id="count"></p>
+
+    <ul id="bookmarkList"></ul>
+
+    <div class="empty" id="emptyState">
+      <div class="empty-icon">&#128278;</div>
+      <p class="empty-text">No bookmarks yet. Add your first one above!</p>
+    </div>
+  </div>
+
+  <script>
+    let bookmarks = [];
+
+    const form = document.getElementById("bookmarkForm");
+    const nameInput = document.getElementById("nameInput");
+    const urlInput = document.getElementById("urlInput");
+    const searchInput = document.getElementById("searchInput");
+    const list = document.getElementById("bookmarkList");
+    const emptyState = document.getElementById("emptyState");
+    const countEl = document.getElementById("count");
+
+    function render(filter = "") {
+      list.innerHTML = "";
+
+      const filtered = bookmarks.filter(b =>
+        b.name.toLowerCase().includes(filter.toLowerCase())
+      );
+
+      const hasBookmarks = bookmarks.length > 0;
+      const hasResults = filtered.length > 0;
+
+      emptyState.style.display = hasResults ? "none" : "block";
+
+      if (!hasResults && hasBookmarks) {
+        emptyState.querySelector(".empty-icon").innerHTML = "&#128269;";
+        emptyState.querySelector(".empty-text").textContent =
+          "No bookmarks match your search.";
+      } else if (!hasBookmarks) {
+        emptyState.querySelector(".empty-icon").innerHTML = "&#128278;";
+        emptyState.querySelector(".empty-text").textContent =
+          "No bookmarks yet. Add your first one above!";
+      }
+
+      countEl.textContent = hasBookmarks
+        ? filtered.length + " of " + bookmarks.length + " bookmark" + (bookmarks.length !== 1 ? "s" : "")
+        : "";
+
+      filtered.forEach((bookmark, index) => {
+        const li = document.createElement("li");
+
+        // Find the real index in the full array for deletion
+        const realIndex = bookmarks.indexOf(bookmark);
+
+        li.innerHTML = `
+          <div class="bookmark-info">
+            <span class="bookmark-name">${escapeHtml(bookmark.name)}</span>
+            <a class="bookmark-url" href="${escapeHtml(bookmark.url)}" target="_blank" rel="noopener">
+              ${escapeHtml(bookmark.url)}
+            </a>
+          </div>
+          <button class="delete-btn" data-index="${realIndex}" title="Delete">&times;</button>
+        `;
+
+        list.appendChild(li);
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      bookmarks.push({
+        name: nameInput.value.trim(),
+        url: urlInput.value.trim()
+      });
+      nameInput.value = "";
+      urlInput.value = "";
+      nameInput.focus();
+      render(searchInput.value);
+    });
+
+    list.addEventListener("click", (e) => {
+      if (e.target.classList.contains("delete-btn")) {
+        const i = parseInt(e.target.dataset.index);
+        bookmarks.splice(i, 1);
+        render(searchInput.value);
+      }
+    });
+
+    searchInput.addEventListener("input", (e) => {
+      render(e.target.value);
+    });
+
+    render();
+  </script>
+</body>
+</html>

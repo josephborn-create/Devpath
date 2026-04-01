@@ -1565,7 +1565,9 @@ function useHashRouter() {
 
 // ─── Progress State (connected to SQLite via API) ───────────────────────────
 
-const API_URL = "http://localhost:3002/api/progress";
+const API_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  "http://localhost:3002/api/progress";
 
 function useProgress() {
   const [completed, setCompleted] = useState({});

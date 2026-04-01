@@ -4,7 +4,10 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start:api": "node devpath-server.js",
     "start": "node server.js"
   },
   "repository": {
@@ -20,8 +23,12 @@
   },
   "homepage": "https://github.com/josephborn-create/devpath#readme",
   "dependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
     "better-sqlite3": "^12.8.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^8.0.3"
   }
 }

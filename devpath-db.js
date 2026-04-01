@@ -1,6 +1,8 @@
 // devpath-db.js — SQLite database for DevPath lesson progress
 const Database = require("better-sqlite3");
-const db = new Database("devpath-progress.db");
+const path = require("path");
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, "devpath-progress.db");
+const db = new Database(dbPath);
 
 // Create the table if it doesn't exist
 db.exec(`

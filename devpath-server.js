@@ -3,9 +3,12 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./devpath-db");
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
-app.use(cors());
+// Allow requests from your deployed frontend
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*",
+}));
 app.use(express.json());
 
 // ── GET /api/progress ── get all completed lessons ──

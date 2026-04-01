@@ -1,111 +1,52 @@
-const http = require("http");
+// server.js — Bookmark API with SQLite database
+const express = require("express");
+const db = require("./db");
+const app = express();
 const PORT = 3001;
 
-// ─── In-memory data store ────────────────────────────────────────────────────
-let bookmarks = [
-  { id: 1, name: "React Docs", url: "https://react.dev" },
-  { id: 2, name: "MDN Web Docs", url: "https://developer.mozilla.org" },
-  { id: 3, name: "Claude Code", url: "https://claude.ai" },
-];
-let nextId = 4;
+app.use(express.json());
 
-// ─── Helper: parse JSON body from a request ──────────────────────────────────
-function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk) => (data += chunk));
-    req.on("end", () => {
-      try {
-        resolve(data ? JSON.parse(data) : {});
-      } catch {
-        reject(new Error("Invalid JSON"));
-      }
-    });
-  });
-}
-
-// ─── Helper: send a JSON response ────────────────────────────────────────────
-function sendJSON(res, statusCode, data) {
-  res.writeHead(statusCode, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data, null, 2));
-}
-
-// ─── The Server ──────────────────────────────────────────────────────────────
-const server = http.createServer(async (req, res) => {
-  const { method, url } = req;
-
-  // ── GET /api/bookmarks ── list all bookmarks ──
-  if (method === "GET" && url === "/api/bookmarks") {
-    return sendJSON(res, 200, bookmarks);
-  }
-
-  // ── GET /api/bookmarks/:id ── get one bookmark ──
-  if (method === "GET" && url.match(/^\/api\/bookmarks\/\d+$/)) {
-    const id = parseInt(url.split("/").pop());
-    const bookmark = bookmarks.find((b) => b.id === id);
-    if (!bookmark) return sendJSON(res, 404, { error: "Bookmark not found" });
-    return sendJSON(res, 200, bookmark);
-  }
-
-  // ── POST /api/bookmarks ── create a new bookmark ──
-  if (method === "POST" && url === "/api/bookmarks") {
-    try {
-      const { name, url: bookmarkUrl } = await parseBody(req);
-      if (!name || !bookmarkUrl) {
-        return sendJSON(res, 400, { error: "Name and URL are required" });
-      }
-      const bookmark = { id: nextId++, name, url: bookmarkUrl };
-      bookmarks.push(bookmark);
-      return sendJSON(res, 201, bookmark);
-    } catch {
-      return sendJSON(res, 400, { error: "Invalid JSON body" });
-    }
-  }
-
-  // ── DELETE /api/bookmarks/:id ── delete a bookmark ──
-  if (method === "DELETE" && url.match(/^\/api\/bookmarks\/\d+$/)) {
-    const id = parseInt(url.split("/").pop());
-    const index = bookmarks.findIndex((b) => b.id === id);
-    if (index === -1) return sendJSON(res, 404, { error: "Bookmark not found" });
-    const deleted = bookmarks.splice(index, 1)[0];
-    return sendJSON(res, 200, { message: "Deleted", bookmark: deleted });
-  }
-
-  // ── PUT /api/bookmarks/:id ── update a bookmark ──
-  if (method === "PUT" && url.match(/^\/api\/bookmarks\/\d+$/)) {
-    const id = parseInt(url.split("/").pop());
-    const bookmark = bookmarks.find((b) => b.id === id);
-    if (!bookmark) return sendJSON(res, 404, { error: "Bookmark not found" });
-    try {
-      const { name, url: bookmarkUrl } = await parseBody(req);
-      if (name) bookmark.name = name;
-      if (bookmarkUrl) bookmark.url = bookmarkUrl;
-      return sendJSON(res, 200, bookmark);
-    } catch {
-      return sendJSON(res, 400, { error: "Invalid JSON body" });
-    }
-  }
-
-  // ── 404 fallback ──
-  sendJSON(res, 404, { error: "Not found", availableEndpoints: [
-    "GET    /api/bookmarks",
-    "GET    /api/bookmarks/:id",
-    "POST   /api/bookmarks",
-    "PUT    /api/bookmarks/:id",
-    "DELETE /api/bookmarks/:id",
-  ]});
+// ── GET /api/bookmarks ── list all (with optional search) ──
+app.get("/api/bookmarks", (req, res) => {
+  const { q } = req.query;
+  const bookmarks = q ? db.search(q) : db.getAll();
+  res.json(bookmarks);
 });
 
-server.listen(PORT, () => {
+// ── GET /api/bookmarks/:id ── get one bookmark ──
+app.get("/api/bookmarks/:id", (req, res) => {
+  const bookmark = db.getById(req.params.id);
+  if (!bookmark) return res.status(404).json({ error: "Not found" });
+  res.json(bookmark);
+});
+
+// ── POST /api/bookmarks ── create a new bookmark ──
+app.post("/api/bookmarks", (req, res) => {
+  const { name, url } = req.body;
+  if (!name || !url) return res.status(400).json({ error: "Name and URL required" });
+  const bookmark = db.create(name, url);
+  res.status(201).json(bookmark);
+});
+
+// ── DELETE /api/bookmarks/:id ── delete a bookmark ──
+app.delete("/api/bookmarks/:id", (req, res) => {
+  const deleted = db.remove(req.params.id);
+  if (!deleted) return res.status(404).json({ error: "Not found" });
+  res.status(204).send();
+});
+
+// ── Start the server ──
+app.listen(PORT, () => {
   console.log("──────────────────────────────────────────");
   console.log("  Bookmark API running on http://localhost:" + PORT);
+  console.log("  Now with SQLite database!");
   console.log("──────────────────────────────────────────");
   console.log("");
   console.log("  Endpoints:");
-  console.log("    GET    /api/bookmarks        List all");
-  console.log("    GET    /api/bookmarks/:id    Get one");
-  console.log("    POST   /api/bookmarks        Create");
-  console.log("    PUT    /api/bookmarks/:id    Update");
-  console.log("    DELETE /api/bookmarks/:id    Delete");
+  console.log("    GET    /api/bookmarks         List all");
+  console.log("    GET    /api/bookmarks?q=term  Search");
+  console.log("    GET    /api/bookmarks/:id     Get one");
+  console.log("    POST   /api/bookmarks         Create");
+  console.log("    DELETE /api/bookmarks/:id      Delete");
   console.log("");
 });

@@ -1,0 +1,26 @@
+{
+  "name": "devpath",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josephborn-create/devpath.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/josephborn-create/devpath/issues"
+  },
+  "homepage": "https://github.com/josephborn-create/devpath#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "express": "^5.2.1"
+  }
+}

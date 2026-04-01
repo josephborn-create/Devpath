@@ -1563,14 +1563,35 @@ function useHashRouter() {
   return { route, navigate };
 }
 
-// ─── Progress State ──────────────────────────────────────────────────────────
+// ─── Progress State (connected to SQLite via API) ───────────────────────────
+
+const API_URL = "http://localhost:3002/api/progress";
 
 function useProgress() {
   const [completed, setCompleted] = useState({});
 
-  const toggleLesson = (lessonId) => {
-    setCompleted((prev) => ({ ...prev, [lessonId]: !prev[lessonId] }));
-  };
+  // Load progress from the database when the app starts
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => setCompleted(data))
+      .catch((err) => console.warn("Could not load progress:", err));
+  }, []);
+
+  // Toggle a lesson and save to the database
+  const toggleLesson = useCallback((lessonId) => {
+    setCompleted((prev) => {
+      const updated = { ...prev, [lessonId]: !prev[lessonId] };
+      // Clean up false values
+      if (!updated[lessonId]) delete updated[lessonId];
+      return updated;
+    });
+
+    // Tell the server to toggle this lesson
+    fetch(`${API_URL}/${lessonId}`, { method: "POST" }).catch((err) =>
+      console.warn("Could not save progress:", err)
+    );
+  }, []);
 
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completedCount = Object.values(completed).filter(Boolean).length;
